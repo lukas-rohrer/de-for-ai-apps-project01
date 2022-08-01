@@ -6,6 +6,7 @@ from sql_queries import *
 
 
 def process_song_file(cur, filepath):
+    """Converts a given JSON file to a Dataframe, extracts the needed data and writes it in the respective tables."""
     # open song file
     df = pd.read_json(filepath, lines=True)
 
@@ -19,6 +20,7 @@ def process_song_file(cur, filepath):
 
 
 def process_log_file(cur, filepath):
+    """Converts a given JSON file to a Dataframe, extracts the needed data and writes it in the respective tables."""
     # open log file
     df = pd.read_json(filepath, lines=True)
 
@@ -65,6 +67,7 @@ def process_log_file(cur, filepath):
 
 
 def process_data(cur, conn, filepath, func):
+    """Loops through all the files and performs the processing defined above"""
     # get all files matching extension from directory
     all_files = []
     for root, dirs, files in os.walk(filepath):
