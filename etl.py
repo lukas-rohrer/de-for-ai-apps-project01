@@ -7,37 +7,38 @@ from sql_queries import *
 
 def process_song_file(cur, filepath):
     # open song file
-    df = 
+    df = pd.read_json(filepath, lines=True)
 
     # insert song record
-    song_data = 
+    song_data = df[["song_id","title", "artist_id", "year", "duration"]].values.flatten().tolist()
     cur.execute(song_table_insert, song_data)
     
     # insert artist record
-    artist_data = 
+    artist_data = artist_data = df[["artist_id", "artist_name", "artist_location", "artist_latitude", "artist_longitude"]].values.flatten().tolist()
     cur.execute(artist_table_insert, artist_data)
 
 
 def process_log_file(cur, filepath):
     # open log file
-    df = 
+    df = pd.read_json(filepath, lines=True)
 
     # filter by NextSong action
-    df = 
+    df = df[df["page"] == "NextSong"]
 
     # convert timestamp column to datetime
-    t = 
+    df["ts"] = pd.to_datetime(df['ts'], unit='ms')
+    t = df["ts"]
     
     # insert time data records
-    time_data = 
-    column_labels = 
-    time_df = 
+    time_data = (t, t.dt.hour, t.dt.day, t.dt.isocalendar().week, t.dt.month, t.dt.year, t.dt.weekday)
+    column_labels = ("timestamp", "hour", "day", "week", "month", "year", "weekday")
+    time_df = pd.DataFrame.from_dict(dict(zip(column_labels, time_data)))
 
     for i, row in time_df.iterrows():
         cur.execute(time_table_insert, list(row))
 
     # load user table
-    user_df = 
+    user_df = df[["userId", "firstName", "lastName", "gender", "level"]].drop_duplicates()
 
     # insert user records
     for i, row in user_df.iterrows():
@@ -47,7 +48,9 @@ def process_log_file(cur, filepath):
     for index, row in df.iterrows():
         
         # get songid and artistid from song and artist tables
-        cur.execute(song_select, (row.song, row.artist, row.length))
+        #print((row.song, row.length, row.artist))
+        cur.execute(song_select, (row.song, row.length, row.artist))
+        
         results = cur.fetchone()
         
         if results:
@@ -56,7 +59,8 @@ def process_log_file(cur, filepath):
             songid, artistid = None, None
 
         # insert songplay record
-        songplay_data = 
+        songplay_data = (row.ts, songid, artistid, row.userId, row.level, row.sessionId, row.location, row.userAgent)
+        #print(songplay_data)
         cur.execute(songplay_table_insert, songplay_data)
 
 
